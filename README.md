@@ -1,1 +1,1 @@
-# latokenBot
+# LatokenBot
