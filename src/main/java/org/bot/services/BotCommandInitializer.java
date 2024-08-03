@@ -21,7 +21,7 @@ public class BotCommandInitializer
     public static void initializeServiceMenu(TelegramBot bot)
     {
         List<BotCommand> listCommands = new ArrayList<>();
-        listCommands.add(new BotCommand("/run", "Start bot"));
+        listCommands.add(new BotCommand("/start", "Start bot"));
         listCommands.add(new BotCommand("/bot", "Start GPT bot"));
         listCommands.add(new BotCommand("/help", "Info about bot"));
         listCommands.add(new BotCommand("/stop", "Stop bot"));
