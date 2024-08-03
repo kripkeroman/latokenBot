@@ -26,4 +26,9 @@ public class MultipleChoiceQuestion extends Question
     {
         return options;
     }
+
+    public List<String> getCorrectAnswers()
+    {
+        return correctAnswers;
+    }
 }

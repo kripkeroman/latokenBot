@@ -28,7 +28,7 @@ public class QuizService
                 Arrays.asList(
                         "О Хакатоне deliver.latoken.com/hackathon",
                         "О Latoken deliver.latoken.com/about",
-                        "Большая часть из #nackedmanagement coda.io/@latoken/latoken-talent/nakedmanagement-88"
+                        "Большая часть из #nackedmanagement coda.io/@latoken/latoken-talent/nakedmanagement-88 траллалалсрра"
                 ),
                 Arrays.asList(
                         "О Хакатоне deliver.latoken.com/hackathon",
@@ -95,10 +95,10 @@ public class QuizService
         questions.add(new SingleChoiceQuestion(
                 "Какое расписание Хакатона корректнее?",
                 Arrays.asList(
-                        "Пятница: 18:00 Разбор задач. Суббота: 18:00 Демо результатов, 19-00 объявление победителей, интервью и офферы",
+                        "Пятница: 18:00 Разбор задач. Суббота: 18:00 Демо результатов, 19-00",
                         "Суббота: 12:00 Презентация компании, 18:00 Презентация результатов проектов"
                 ),
-                "Пятница: 18:00 Разбор задач. Суббота: 18:00 Демо результатов, 19-00 объявление победителей, интервью и офферы",
+                "Пятница: 18:00 Разбор задач. Суббота: 18:00 Демо результатов, 19-00",
                 1
         ));
 
@@ -106,7 +106,8 @@ public class QuizService
         questions.add(new MultipleChoiceQuestion(
                 "Каковы признаки 'Wartime CEO' согласно крупнейшему венчурному фонду a16z?",
                 Arrays.asList(
-                        "Сосредотачивается на общей картине и дает сотрудникам принимать детальные решения на общей картине и дает команде возможность принимать детальные решения",
+                        "Сосредотачивается на общей картине и дает сотрудникам принимать детальные решения ",
+                        "На общей картине дает команде возможность принимать детальные решения",
                         "Употребляет ненормативную лексику, кричит, редко говорит спокойным тоном",
                         "Терпит отклонения от плана, если они связаны с усилиями и творчеством",
                         "Не терпит отклонений от плана",
@@ -177,8 +178,16 @@ public class QuizService
         int score = 0;
         for (Map.Entry<Integer, String> entry : userAnswers.entrySet()) {
             Question question = questions.get(entry.getKey());
-            if (question.checkAnswer(entry.getValue())) {
-                score += question.getPoints();
+            if (question instanceof SingleChoiceQuestion) {
+                if (((SingleChoiceQuestion) question).getCorrectAnswer().equals(entry.getValue())) {
+                    score += question.getPoints();
+                }
+            } else if (question instanceof MultipleChoiceQuestion) {
+                List<String> correctAnswers = ((MultipleChoiceQuestion) question).getCorrectAnswers();
+                List<String> userSelectedAnswers = Arrays.asList(entry.getValue().split(","));
+                if (userSelectedAnswers.containsAll(correctAnswers) && correctAnswers.containsAll(userSelectedAnswers)) {
+                    score += question.getPoints();
+                }
             }
         }
         return score;

@@ -4,15 +4,17 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bot.config.BotConfig;
+import org.bot.constant.HelpText;
 import org.bot.openAI.ChatGptService;
 import org.bot.quizService.QuizController;
 import org.bot.services.BotCommandInitializer;
 import org.bot.services.SendMessages;
-import org.bot.services.UserRegistration;
+import org.bot.bdService.modelForUser.UserRegistration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.polls.PollAnswer;
 
 import static org.bot.constant.HelpText.HELP_TEXT;
 import static org.bot.services.SendMessages.handleCallback;
@@ -23,10 +25,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Autowired
     private UserRegistration userRegistration;
+    private final QuizController quizController;
 
     final BotConfig config;
     private final ChatGptService gptService;
-    private final QuizController quizController;
     private boolean inDialogWithBot = false;
 
     @Setter
@@ -113,6 +115,8 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
         } else if (update.hasCallbackQuery()) {
             handleCallback(this, update.getCallbackQuery(), quizController);
+        } else if (update.hasPollAnswer()) {
+            quizController.handleUpdate(update, this);
         }
     }
 

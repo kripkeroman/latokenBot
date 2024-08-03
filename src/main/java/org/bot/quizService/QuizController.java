@@ -3,16 +3,23 @@ package org.bot.quizService;
 import org.bot.bdService.modelForQuiz.QuizAnswer;
 import org.bot.bdService.modelForQuiz.QuizAnswerRepository;
 import org.bot.initializer.TelegramBot;
+import org.bot.quizService.questionService.MultipleChoiceQuestion;
 import org.bot.quizService.questionService.Question;
 import org.bot.quizService.questionService.SingleChoiceQuestion;
+import org.bot.quizService.questionService.TextQuestion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.bot.services.SendMessages.sendMessage;
 
 @Component
 public class QuizController
@@ -23,16 +30,15 @@ public class QuizController
     private Map<Long, Integer> currentQuestionIndex = new HashMap<>();
 
     @Autowired
-    public QuizController(QuizService quizService, QuizAnswerRepository quizAnswerRepository)
-    {
+    public QuizController(QuizService quizService, QuizAnswerRepository quizAnswerRepository) {
         this.quizService = quizService;
         this.quizAnswerRepository = quizAnswerRepository;
     }
 
     public void handleUpdate(Update update, TelegramBot bot)
     {
-        Long chatId;
-        String messageText;
+        Long chatId = null;
+        String messageText = "";
         String firstName = "";
         String lastName = "";
 
@@ -46,8 +52,13 @@ public class QuizController
             messageText = update.getCallbackQuery().getData();
             firstName = update.getCallbackQuery().getFrom().getFirstName();
             lastName = update.getCallbackQuery().getFrom().getLastName();
+        } else if (update.hasPollAnswer()) {
+            chatId = update.getPollAnswer().getUser().getId();
+            List<Integer> selectedOptionIds = update.getPollAnswer().getOptionIds();
+            messageText = selectedOptionIds.stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
         } else {
-            // Если нет ни текста, ни колбэка, выходим
             return;
         }
 
@@ -59,12 +70,10 @@ public class QuizController
         int questionIndex = currentQuestionIndex.get(chatId);
         Map<Integer, String> answers = userAnswers.get(chatId);
 
-        // Сохраняем ответ пользователя на предыдущий вопрос
-        if (questionIndex > 0) {
+        if (questionIndex > 0 && !messageText.isEmpty()) {
             answers.put(questionIndex - 1, messageText);
         }
 
-        // Отправляем следующий вопрос или завершаем тест
         if (questionIndex < quizService.getQuestions().size()) {
             sendNextQuestion(chatId, questionIndex, bot);
             currentQuestionIndex.put(chatId, questionIndex + 1);
@@ -72,24 +81,42 @@ public class QuizController
             finishQuiz(chatId, answers, firstName, lastName, bot);
             userAnswers.remove(chatId);
             currentQuestionIndex.remove(chatId);
-            bot.setInQuiz(false); // Завершаем викторину
+            bot.setInQuiz(false);
         }
     }
 
-    private void sendNextQuestion(Long chatId, int questionIndex, AbsSender sender)
-    {
+    private void sendNextQuestion(Long chatId, int questionIndex, AbsSender sender) {
         Question question = quizService.getQuestions().get(questionIndex);
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId.toString());
-        message.setText(formatQuestion(question));
+        if (question instanceof TextQuestion) {
+            sendMessage(sender, chatId, question.getQuestionText());
+        } else {
+            List<String> options;
+            boolean allowsMultipleAnswers = false;
+            if (question instanceof SingleChoiceQuestion) {
+                SingleChoiceQuestion singleChoiceQuestion = (SingleChoiceQuestion) question;
+                options = singleChoiceQuestion.getOptions();
+            } else if (question instanceof MultipleChoiceQuestion) {
+                MultipleChoiceQuestion multipleChoiceQuestion = (MultipleChoiceQuestion) question;
+                options = multipleChoiceQuestion.getOptions();
+                allowsMultipleAnswers = true;
+            } else {
+                return;
+            }
 
-        try
-        {
-            sender.execute(message);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
+            SendPoll poll = SendPoll.builder()
+                    .chatId(chatId.toString())
+                    .question(question.getQuestionText())
+                    .options(options)
+                    .isAnonymous(false)
+                    .type("regular")
+                    .allowMultipleAnswers(allowsMultipleAnswers)
+                    .build();
+
+            try {
+                sender.execute(poll);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -122,31 +149,22 @@ public class QuizController
             message.setText("Вы набрали " + score + " баллов из 22. Необходимо подучить еще материал.");
         }
 
-        try
-        {
+        try {
             sender.execute(message);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private String formatQuestion(Question question)
-    {
-        StringBuilder formattedQuestion = new StringBuilder(question.getQuestionText());
-        int optionNumber = 1;
+    private void sendMessage(AbsSender sender, Long chatId, String text) {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId.toString());
+        message.setText(text);
 
-        if (question instanceof SingleChoiceQuestion)
-        {
-            SingleChoiceQuestion singleChoiceQuestion = (SingleChoiceQuestion) question;
-            for (String option : singleChoiceQuestion.getOptions())
-            {
-                formattedQuestion.append("\n").append(optionNumber).append(". ").append(option);
-                optionNumber++;
-            }
+        try {
+            sender.execute(message);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        return formattedQuestion.toString();
     }
 }

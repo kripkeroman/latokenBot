@@ -1,8 +1,6 @@
-package org.bot.services;
+package org.bot.bdService.modelForUser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bot.bdService.modelForUser.User;
-import org.bot.bdService.modelForUser.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Message;

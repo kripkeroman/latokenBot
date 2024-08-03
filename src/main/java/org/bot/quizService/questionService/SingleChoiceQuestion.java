@@ -24,4 +24,9 @@ public class SingleChoiceQuestion extends Question
     {
         return options;
     }
+
+    public String getCorrectAnswer()
+    {
+        return correctAnswer;
+    }
 }
