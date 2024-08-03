@@ -31,9 +31,9 @@ public class QuizService
                         "Большая часть из #nackedmanagement coda.io/@latoken/latoken-talent/nakedmanagement-88 траллалалсрра"
                 ),
                 Arrays.asList(
-                        "О Хакатоне deliver.latoken.com/hackathon",
-                        "О Latoken deliver.latoken.com/about",
-                        "Большая часть из #nackedmanagement coda.io/@latoken/latoken-talent/nakedmanagement-88"
+                        0,
+                        1,
+                        2
                 ),
                 3
         ));
@@ -42,7 +42,7 @@ public class QuizService
         questions.add(new SingleChoiceQuestion(
                 "Какой призовой фонд на Хакатоне?",
                 Arrays.asList("25,000 Опционов", "100,000 Опционов или 10,000 LA", "Только бесценный опыт"),
-                "100,000 Опционов или 10,000 LA",
+                1,
                 1
         ));
 
@@ -54,7 +54,7 @@ public class QuizService
                         "Показать работающий сервис",
                         "Продемонстрировать навыки коммуникации и командной работы"
                 ),
-                "Показать мои способности узнавать новые технологии",
+                0,
                 1
         ));
 
@@ -73,13 +73,13 @@ public class QuizService
                         "Комфортная среда для свободы творчества"
                 ),
                 Arrays.asList(
-                        "Быстрый рост через решение нетривиальных задач",
-                        "Передовые технологии AIxWEB3",
-                        "Глобальный рынок, клиенты в 200+ странах",
-                        "Самая успешная компания из СНГ в WEB3",
-                        "Удаленная работа, но без давншифтинга",
-                        "Оплата в твердой валюте, без привязки к банкам",
-                        "Опционы с 'откешиванием' криптолетом"
+                        0,
+                        1,
+                        2,
+                        4,
+                        5,
+                        6,
+                        7
                 ),
                 7
         ));
@@ -98,7 +98,7 @@ public class QuizService
                         "Пятница: 18:00 Разбор задач. Суббота: 18:00 Демо результатов, 19-00",
                         "Суббота: 12:00 Презентация компании, 18:00 Презентация результатов проектов"
                 ),
-                "Пятница: 18:00 Разбор задач. Суббота: 18:00 Демо результатов, 19-00",
+                0,
                 1
         ));
 
@@ -115,9 +115,9 @@ public class QuizService
                         "Тренерует сотрудников, так чтобы им не прострелили зад на поле боя"
                 ),
                 Arrays.asList(
-                        "Употребляет ненормативную лексику, кричит, редко говорит спокойным тоном",
-                        "Не терпит отклонений от плана",
-                        "Тренерует сотрудников, так чтобы им не прострелили зад на поле боя"
+                        2,
+                        4,
+                        6
                 ),
                 3
         ));
@@ -135,10 +135,10 @@ public class QuizService
                         "Демонстрацию результатов в проде каждую неделю"
                 ),
                 Arrays.asList(
-                        "Вникания в блокеры вне основного стека, чтобы довести свою задачу до прода",
-                        "Тестирование продукта",
-                        "Измерение результатов",
-                        "Демонстрацию результатов в проде каждую неделю"
+                        1,
+                        2,
+                        5,
+                        6
                 ),
                 4
         ));
@@ -154,7 +154,7 @@ public class QuizService
                         "Нет, если мне не дадут посмотреть эти ответы",
                         "Нет, если это может мне повредить"
                 ),
-                "Нет",
+                3,
                 1
         ));
 
@@ -162,7 +162,7 @@ public class QuizService
         questions.add(new SingleChoiceQuestion(
                 "Кирпич весит килограмм и еще пол-кирпича. Сколько весит кирпич?",
                 Arrays.asList("1 кг", "1.5 кг", "2 кг", "3 кг"),
-                "1.5 кг",
+                1,
                 1
         ));
 
@@ -177,16 +177,19 @@ public class QuizService
     public int calculateScore(Map<Integer, String> userAnswers) {
         int score = 0;
         for (Map.Entry<Integer, String> entry : userAnswers.entrySet()) {
-            Question question = questions.get(entry.getKey());
+            int questionIndex = entry.getKey();
+            String userAnswer = entry.getValue();
+            Question question = questions.get(questionIndex);
+
             if (question instanceof SingleChoiceQuestion) {
-                if (((SingleChoiceQuestion) question).getCorrectAnswer().equals(entry.getValue())) {
-                    score += question.getPoints();
+                SingleChoiceQuestion singleChoiceQuestion = (SingleChoiceQuestion) question;
+                if (singleChoiceQuestion.checkAnswer(userAnswer)) {
+                    score += singleChoiceQuestion.getPoints();
                 }
             } else if (question instanceof MultipleChoiceQuestion) {
-                List<String> correctAnswers = ((MultipleChoiceQuestion) question).getCorrectAnswers();
-                List<String> userSelectedAnswers = Arrays.asList(entry.getValue().split(","));
-                if (userSelectedAnswers.containsAll(correctAnswers) && correctAnswers.containsAll(userSelectedAnswers)) {
-                    score += question.getPoints();
+                MultipleChoiceQuestion multipleChoiceQuestion = (MultipleChoiceQuestion) question;
+                if (multipleChoiceQuestion.checkAnswer(userAnswer)) {
+                    score += multipleChoiceQuestion.getPoints();
                 }
             }
         }

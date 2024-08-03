@@ -5,28 +5,34 @@ import java.util.List;
 public class SingleChoiceQuestion extends Question
 {
     private List<String> options;
-    private String correctAnswer;
+    private Integer correctAnswer;
 
-    public SingleChoiceQuestion(String questionText, List<String> options, String correctAnswer, int points)
-    {
+    public SingleChoiceQuestion(String questionText, List<String> options, Integer correctAnswer, int points) {
         super(questionText, points);
         this.options = options;
         this.correctAnswer = correctAnswer;
     }
 
     @Override
-    public boolean checkAnswer(String answer)
-    {
-        return correctAnswer.equalsIgnoreCase(answer);
+    public boolean checkAnswer(String answer) {
+        try {
+            Integer answerIndex = Integer.parseInt(answer);
+            return correctAnswer.equals(answerIndex);
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
-    public List<String> getOptions()
-    {
+    @Override
+    public boolean checkAnswer(Integer answer) {
+        return correctAnswer.equals(answer);
+    }
+
+    public List<String> getOptions() {
         return options;
     }
 
-    public String getCorrectAnswer()
-    {
+    public Integer getCorrectAnswer() {
         return correctAnswer;
     }
 }

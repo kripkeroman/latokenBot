@@ -5,21 +5,19 @@ public abstract class Question
     private String questionText;
     private int points;
 
-    public Question(String questionText, int points)
-    {
+    public Question(String questionText, int points) {
         this.questionText = questionText;
         this.points = points;
     }
 
-    public String getQuestionText()
-    {
+    public String getQuestionText() {
         return questionText;
     }
 
-    public int getPoints()
-    {
+    public int getPoints() {
         return points;
     }
 
     public abstract boolean checkAnswer(String answer);
+    public abstract boolean checkAnswer(Integer answer);
 }

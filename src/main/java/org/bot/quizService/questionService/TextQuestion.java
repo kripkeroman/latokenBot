@@ -15,4 +15,13 @@ public class TextQuestion extends Question
     {
         return answer.length() >= minLength;
     }
+
+    /**
+     * @param answer
+     * @return
+     */
+    @Override
+    public boolean checkAnswer(Integer answer) {
+        return false;
+    }
 }
