@@ -8,7 +8,6 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
@@ -20,18 +19,17 @@ public class SendMessages
     public static void sendInlineKeyboardMessage(TelegramBot bot, long chatId, String messageText, String... buttonNames)
     {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<InlineKeyboardButton> rowInline = new ArrayList<>();
-        for (String buttonName : buttonNames)
-        {
-            rowInline.add(InlineKeyboardButton
-                    .builder()
-                    .text(buttonName)
-                    .callbackData(buttonName)
-                    .build());
-        }
-
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        rowsInline.add(rowInline);
+
+        List<InlineKeyboardButton> firstRow = new ArrayList<>();
+        firstRow.add(InlineKeyboardButton.builder().text(buttonNames[0]).callbackData(buttonNames[0]).build());
+        firstRow.add(InlineKeyboardButton.builder().text(buttonNames[1]).callbackData(buttonNames[1]).build());
+        firstRow.add(InlineKeyboardButton.builder().text(buttonNames[2]).callbackData(buttonNames[2]).build());
+        rowsInline.add(firstRow);
+
+        List<InlineKeyboardButton> secondRow = new ArrayList<>();
+        secondRow.add(InlineKeyboardButton.builder().text(buttonNames[3]).callbackData(buttonNames[3]).build());
+        rowsInline.add(secondRow);
 
         inlineKeyboardMarkup.setKeyboard(rowsInline);
 
@@ -44,6 +42,7 @@ public class SendMessages
                 .builder()
                 .chatId(String.valueOf(chatId))
                 .text(messageText)
+                .parseMode("Markdown")
                 .replyMarkup(inlineKeyboardMarkup)
                 .build();
         try
@@ -62,6 +61,7 @@ public class SendMessages
                 .builder()
                 .chatId(String.valueOf(chatId))
                 .text(answer)
+                .parseMode("Markdown")
                 .build();
         try
         {
@@ -81,13 +81,13 @@ public class SendMessages
         switch (callData)
         {
             case "О Latoken":
-                sendMessage(bot, chatId, "Latoken - это ведущая криптобиржа, предлагающая платформу для торговли и обмена криптовалютами.");
+                sendMessage(bot, chatId, "Для ознакомления перейдите по ссылке [Latoken](https://coda.io/@latoken/latoken-talent/latoken-161)");
                 break;
             case "О Hackathon":
-                sendMessage(bot, chatId, "Наш Hackathon - это уникальная возможность для разработчиков и энтузиастов показать свои навыки и выиграть призы.");
+                sendMessage(bot, chatId, "Для ознакомления перейдите по ссылке [О Hackathon](https://coda.io/@latoken/latoken-talent/latoken-161)");
                 break;
-            case "О культуре":
-                sendMessage(bot, chatId, "Культура Latoken основана на инновациях, командной работе и стремлении к высокому качеству.");
+            case "О Culture":
+                sendMessage(bot, chatId, "Для ознакомления перейдите по ссылке [О Culture](https://coda.io/@latoken/latoken-talent/culture-139)");
                 break;
             case "Пройти тест":
                 bot.setInQuiz(true);

@@ -4,7 +4,6 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bot.config.BotConfig;
-import org.bot.constant.HelpText;
 import org.bot.openAI.ChatGptService;
 import org.bot.quizService.QuizController;
 import org.bot.services.BotCommandInitializer;
@@ -14,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.polls.PollAnswer;
 
 import static org.bot.constant.HelpText.HELP_TEXT;
 import static org.bot.services.SendMessages.handleCallback;
@@ -91,7 +89,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                     SendMessages.sendMessage(this, chatId, gptGeneratedText);
                 }
             } else if (inQuiz) {
-                quizController.handleUpdate(update, this);
+                if ("/stop".equals(messageText)) {
+                    inQuiz = false;
+                    SendMessages.sendMessage(this, chatId, "Exiting quiz.");
+                } else {
+                    quizController.handleUpdate(update, this);
+                }
             } else {
                 switch (messageText) {
                     case "/bot":
@@ -99,15 +102,18 @@ public class TelegramBot extends TelegramLongPollingBot {
                         var gptGeneratedText = gptService.getResponseChatForUser(chatId, messageText);
                         SendMessages.sendMessage(this, chatId, gptGeneratedText);
                         break;
-                    case "/run":
+                    case "/start":
                         userRegistration.registerUser(update.getMessage());
                         String name = update.getMessage().getChat().getFirstName();
                         String answer = "Hi " + name;
                         log.info("Replied to user " + name);
-                        SendMessages.sendInlineKeyboardMessage(this, chatId, answer, "О Latoken", "О Hackathon", "О культуре", "Пройти тест");
+                        SendMessages.sendInlineKeyboardMessage(this, chatId, answer, "О Latoken", "О Hackathon", "О Culture", "Пройти тест");
                         break;
                     case "/help":
                         SendMessages.sendMessage(this, chatId, HELP_TEXT);
+                        break;
+                    case "/stop":
+                        SendMessages.sendMessage(this, chatId, "No active process to stop.");
                         break;
                     default:
                         SendMessages.sendMessage(this, chatId, "Sorry, command not recognized");
